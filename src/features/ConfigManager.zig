@@ -6,16 +6,16 @@ const AppStyles = @import("../styles.zig");
 
 const Panel = @import("../components/Panel.zig");
 
-const FinanceManager = @This();
+const ConfigManager = @This();
 
 // : Panel,
 // right_panel: Panel,
 
-pub fn init(_: std.mem.Allocator) FinanceManager {
+pub fn init(_: std.mem.Allocator) ConfigManager {
     return .{};
 }
 
-pub fn widget(self: *FinanceManager) vxfw.Widget {
+pub fn widget(self: *ConfigManager) vxfw.Widget {
     return .{
         .userdata = self,
         .eventHandler = typeErasedEventHandler,
@@ -24,16 +24,16 @@ pub fn widget(self: *FinanceManager) vxfw.Widget {
 }
 
 fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    const self: *FinanceManager = @ptrCast(@alignCast(ptr));
+    const self: *ConfigManager = @ptrCast(@alignCast(ptr));
     return self.handleEvent(ctx, event);
 }
 
 fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
-    const self: *FinanceManager = @ptrCast(@alignCast(ptr));
+    const self: *ConfigManager = @ptrCast(@alignCast(ptr));
     return self.draw(ctx);
 }
 
-pub fn handleEvent(self: *FinanceManager, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
+pub fn handleEvent(self: *ConfigManager, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
     _ = self;
     _ = ctx;
     switch (event) {
@@ -47,7 +47,7 @@ pub fn handleEvent(self: *FinanceManager, ctx: *vxfw.EventContext, event: vxfw.E
     }
 }
 
-pub fn draw(self: *FinanceManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
+pub fn draw(self: *ConfigManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
     const name: vxfw.Text = .{ .text = "Hue" };

@@ -123,20 +123,6 @@ fn get_model(self: *TopMenu) *ShellterApp {
 
 pub fn draw(self: *TopMenu, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
-    const model = self.get_model();
-
-    const focus_label = model.get_focus_label();
-    const focus_text: vxfw.Text = .{
-        .text = focus_label,
-        .text_align = .center,
-        .style = .{ .reverse = true },
-    };
-
-    const focus_surface: vxfw.SubSurface = .{
-        //origin
-        .origin = .{ .row = 0, .col = @intCast(max_size.width - focus_label.len) },
-        .surface = try focus_text.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = 1 })),
-    };
 
     const bl_s: vxfw.SubSurface = .{
         //origin
@@ -146,14 +132,13 @@ pub fn draw(self: *TopMenu, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface 
 
     const br_s: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 0, .col = @intCast(self.button_focus_left.label.len + 2) },
+        .origin = .{ .row = 0, .col = @intCast(self.button_focus_left.label.len + 3) },
         .surface = try self.button_focus_right.draw(ctx.withConstraints(ctx.min, .{ .width = @intCast(self.button_focus_right.label.len + 2), .height = 1 })),
     };
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
     childs[0] = bl_s;
     childs[1] = br_s;
-    childs[2] = focus_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         //alloc

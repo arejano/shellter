@@ -59,26 +59,21 @@ pub fn handleEvent(self: *Panel, ctx: *vxfw.EventContext, event: vxfw.Event) any
 pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
 
-    const panel_name: vxfw.Text = .{ .text = self.label, .style = .{ .reverse = true } };
+    const panel_name: vxfw.Text = .{ .text = self.label, .style = AppStyles.cat_disable() };
 
     const name_surface: vxfw.SubSurface = .{
         //origin
-        .z_index = 2,
-        .origin = .{ .row = 0, .col = 2 },
+        .origin = .{ .row = 0, .col = 0 },
         .surface = try panel_name.draw(ctx.withConstraints(ctx.min, .{ .width = 25, .height = 1 })),
     };
 
-    // const slot_ctx = ctx.withConstraints(.{ .width = 0, .height = 0 }, .{ .width = ctx.max.width, .height = max_size.height - 3 });
-    // const slot = try self.child.draw(slot_ctx);
-
-    // const border: vxfw.Border = .{ .child = self.child };
-    const border: vxfw.Border = .{ .child = self.child, .theme = BorderThemes.default() };
+    // const border: vxfw.Border = .{ .child = self.child, .theme = BorderThemes.default(), .style = AppStyles.dark_background() };
 
     const slot_suface: vxfw.SubSurface = .{
         //origin
         .z_index = 1,
-        .origin = .{ .row = 0, .col = 0 },
-        .surface = try border.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height })),
+        .origin = .{ .row = 1, .col = 0 },
+        .surface = try self.child.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
@@ -92,7 +87,6 @@ pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
         childs,
     );
 
-    const style = if (self.has_focus) AppStyles.redBg() else AppStyles.dark_background();
-    @memset(surface.buffer, .{ .style = style });
+    @memset(surface.buffer, .{ .style = AppStyles.cat_disable() });
     return surface;
 }

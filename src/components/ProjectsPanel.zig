@@ -4,8 +4,11 @@ const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
 const TaskManagerState = @import("../features/TaskManager.zig").TaskManagerState;
+const ProjectsList = @import("../components/ProjectsList.zig");
 
-const ProjectsList = @This();
+const ProjectsPanel = @This();
+
+label: []const u8,
 
 //State
 mouse_down: bool = false,
@@ -15,13 +18,19 @@ has_focus: bool = false,
 button: vxfw.Button,
 state: ?*anyopaque = null,
 
-pub fn init(_: std.mem.Allocator, state: *anyopaque) ProjectsList {
+projects_list: ProjectsList,
+
+pub fn init(allocator: std.mem.Allocator, state: *anyopaque) ProjectsPanel {
+    const project_list: ProjectsList = ProjectsList.init(allocator, state);
+
     return .{
         .state = state,
+        .label = "ProjectsList",
+        .projects_list = project_list,
         .button = .{
             .userdata = state,
             .label = "Novo Projeto",
-            .onClick = ProjectsList.newProject,
+            .onClick = ProjectsPanel.newProject,
         },
     };
 }
@@ -34,7 +43,7 @@ fn newProject(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     return ctx.consumeAndRedraw();
 }
 
-pub fn widget(self: *ProjectsList) vxfw.Widget {
+pub fn widget(self: *ProjectsPanel) vxfw.Widget {
     return .{
         .userdata = self,
         .eventHandler = typeErasedEventHandler,
@@ -43,16 +52,16 @@ pub fn widget(self: *ProjectsList) vxfw.Widget {
 }
 
 fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    const self: *ProjectsList = @ptrCast(@alignCast(ptr));
+    const self: *ProjectsPanel = @ptrCast(@alignCast(ptr));
     return self.handleEvent(ctx, event);
 }
 
 fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
-    const self: *ProjectsList = @ptrCast(@alignCast(ptr));
+    const self: *ProjectsPanel = @ptrCast(@alignCast(ptr));
     return self.draw(ctx);
 }
 
-pub fn handleEvent(self: *ProjectsList, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
+pub fn handleEvent(self: *ProjectsPanel, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
     _ = self;
     _ = ctx;
     switch (event) {
@@ -66,17 +75,31 @@ pub fn handleEvent(self: *ProjectsList, ctx: *vxfw.EventContext, event: vxfw.Eve
     }
 }
 
-pub fn draw(self: *ProjectsList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
+pub fn draw(self: *ProjectsPanel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
+
+    const button_surface: vxfw.SubSurface = .{
+        .origin = .{ .row = max.height - 2, .col = 0 },
+        .surface = try self.button.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
+    };
+
     const state: *TaskManagerState = @ptrCast(@alignCast(self.state));
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, state.projects.items.len);
+    const pj_list_surface: vxfw.SubSurface = .{
+        .origin = .{ .row = 0, .col = 0 },
+        .surface = try self.projects_list.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height - 2 })),
+    };
 
-    for (state.projects.items, 0..) |_, idx| {
-        const text: vxfw.Text = .{ .text = "Teste" };
-        const sb: vxfw.SubSurface = .{ .origin = .{ .row = @intCast(idx), .col = 0 }, .surface = try text.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })) };
-        childs[idx] = sb;
-    }
+    const text_fmt = try std.fmt.allocPrint(ctx.arena, "{d}", .{state.projects.items.len});
+    const pj_text: vxfw.Text = .{ .text = text_fmt };
+
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
+    childs[0] = button_surface;
+    childs[1] = .{
+        .origin = .{ .row = max.height - 10, .col = 0 },
+        .surface = try pj_text.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
+    };
+    childs[2] = pj_list_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,

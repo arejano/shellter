@@ -4,13 +4,14 @@ const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("styles.zig");
 
-const TopMenu = @import("components/top_menu.zig");
+const TopPanel = @import("components/top_menu.zig");
 const LeftPanel = @import("components//left_panel.zig");
 const RigthPanelComponent = @import("components/right_panel.zig");
 const BottomPanelComponent = @import("components/bottom_panel.zig");
 
 const TaskManager = @import("features/TaskManager.zig");
 const FinanceManager = @import("features/FinanceManager.zig");
+const ConfigManager = @import("features/ConfigManager.zig");
 
 const Button = vxfw.Button;
 const Text = vxfw.Text;
@@ -38,17 +39,6 @@ pub const Focus = enum {
     }
 };
 
-pub const ComponentFocus = enum {
-    TopMenu,
-    LeftPanel,
-    RightPanel,
-    BottomPanel,
-};
-
-pub const ShellterState = struct {
-    counter: usize = 1,
-};
-
 const ShellterApp = @This();
 
 app_name: []const u8 = "Shellter",
@@ -56,29 +46,30 @@ allocator: std.mem.Allocator,
 version: []const u8 = "0.0.1",
 vaxis_app: *vxfw.App,
 
-top_menu: TopMenu,
+top_panel: TopPanel,
 task_manager: TaskManager,
 finance_manager: FinanceManager,
+config_manager: ConfigManager,
 bottom_panel: BottomPanelComponent,
 
 userdata: ?*anyopaque = null,
-
-component_focus: ComponentFocus = .TopMenu,
 feature_focus: Focus = .task,
 
-pub fn init(model: *ShellterApp, app: *vxfw.App, allocator: std.mem.Allocator) ShellterApp {
+pub fn init(model: *ShellterApp, app: *vxfw.App, allocator: std.mem.Allocator) !ShellterApp {
     const vx_app: *vxfw.App = @ptrCast(@alignCast(app));
 
-    const top_panel: TopMenu = TopMenu.init(model);
-    const task_manager: TaskManager = TaskManager.init(allocator);
+    const top_panel: TopPanel = TopPanel.init(model);
+    const task_manager: TaskManager = try TaskManager.init(allocator);
     const finance_manager: FinanceManager = FinanceManager.init(allocator);
+    const config_manager: ConfigManager = ConfigManager.init(allocator);
 
     return .{
         .userdata = model,
         .allocator = allocator,
         //
         .vaxis_app = vx_app,
-        .top_menu = top_panel,
+        .top_panel = top_panel,
+        .config_manager = config_manager,
         .task_manager = task_manager,
         .finance_manager = finance_manager,
         .bottom_panel = .{ .userdata = model },
@@ -91,15 +82,6 @@ pub fn widget(self: *ShellterApp) vxfw.Widget {
         .eventHandler = typeErasedEventHandler,
         .drawFn = typeErasedDrawFn,
     };
-}
-
-pub fn get_focus_label(self: *ShellterApp) []const u8 {
-    switch (self.component_focus) {
-        .TopMenu => return "TopMenu",
-        .LeftPanel => return "LeftPanel",
-        .RightPanel => return "RightPanel",
-        .BottomPanel => return "BottomPanel",
-    }
 }
 
 fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
@@ -138,7 +120,7 @@ pub fn draw(self: *ShellterApp, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surf
 
     const top_menu_subsurface: vxfw.SubSurface = .{
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try self.top_menu.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
+        .surface = try self.top_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
     };
 
     const task_manager_surface: vxfw.SubSurface = .{
@@ -151,22 +133,28 @@ pub fn draw(self: *ShellterApp, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surf
         .surface = try self.finance_manager.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height })),
     };
 
+    const config_manager_surface: vxfw.SubSurface = .{
+        .origin = .{ .row = 1, .col = 0 },
+        .surface = try self.config_manager.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height })),
+    };
+
     const bottom_surface: vxfw.SubSurface = .{
         .origin = .{ .row = max.height - 1, .col = 0 },
         .surface = try self.bottom_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
     };
 
-    const text: vxfw.Text = .{
-        .text = "Empty Panel",
-    };
-    const empty_center: vxfw.Center = .{
-        .child = text.widget(),
-    };
+    // const text: vxfw.Text = .{
+    //     .text = "Empty Panel",
+    // };
+    // const empty_center: vxfw.Center = .{
+    //     .child = text.widget(),
+    // };
 
-    const empty_surface: vxfw.SubSurface = .{
-        .origin = .{ .row = 1, .col = 0 },
-        .surface = try empty_center.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height })),
-    };
+    // const empty_surface: vxfw.SubSurface = .{
+    //     .origin = .{ .row = 1, .col = 0 },
+    //     .surface = try empty_center.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height })),
+    // };
+    // _ = empty_surface;
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
     childs[0] = top_menu_subsurface;
@@ -178,19 +166,20 @@ pub fn draw(self: *ShellterApp, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surf
         .finance => {
             childs[1] = finance_manager_surface;
         },
-        else => {
-            childs[1] = empty_surface;
+        .config => {
+            childs[1] = config_manager_surface;
         },
     }
 
     childs[2] = bottom_surface;
 
-    const surf = try vxfw.Surface.initWithChildren(
+    const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,
         self.widget(),
         max,
         childs,
     );
+    @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
 
-    return surf;
+    return surface;
 }

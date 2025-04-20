@@ -3,13 +3,23 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
-const ShellterApp = @import("../shellter.zig");
 
-const Self = @This();
+const TaskList = @This();
 
-userdata: ?*anyopaque = null,
+label: []const u8,
 
-pub fn widget(self: *Self) vxfw.Widget {
+//State
+mouse_down: bool = false,
+has_mouse: bool = false,
+has_focus: bool = false,
+
+pub fn init(allocator: std.mem.Allocator) TaskList {
+    _ = allocator;
+
+    return .{ .label = "" };
+}
+
+pub fn widget(self: *TaskList) vxfw.Widget {
     return .{
         .userdata = self,
         .eventHandler = typeErasedEventHandler,
@@ -18,60 +28,49 @@ pub fn widget(self: *Self) vxfw.Widget {
 }
 
 fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    const self: *Self = @ptrCast(@alignCast(ptr));
+    const self: *TaskList = @ptrCast(@alignCast(ptr));
     return self.handleEvent(ctx, event);
 }
 
 fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
-    const self: *Self = @ptrCast(@alignCast(ptr));
+    const self: *TaskList = @ptrCast(@alignCast(ptr));
     return self.draw(ctx);
 }
 
-pub fn handleEvent(self: *Self, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
+pub fn handleEvent(self: *TaskList, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
+    _ = self;
+    _ = ctx;
     switch (event) {
-        .key_press => |key| {
-            _ = key;
-        },
-        .mouse => |mouse| {
-            _ = mouse;
-        },
-        .focus_in => return ctx.requestFocus(self.widget()),
+        .key_press => |_| {},
+        .mouse => |_| {},
+        .focus_in => {},
         .focus_out => {},
         .mouse_enter => {},
         .mouse_leave => {},
-
         else => {},
     }
 }
 
-pub fn draw(self: *Self, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
+pub fn draw(self: *TaskList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
-    const log_text = "LOG:";
-
-    //Title
-    const panel_name: vxfw.Text = .{
-        .text = log_text,
-        .style = AppStyles.status_title(),
-    };
+    const panel_name: vxfw.Text = .{ .text = self.label, .style = .{ .reverse = true } };
 
     const name_surface: vxfw.SubSurface = .{
-        //origin
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try panel_name.draw(ctx.withConstraints(ctx.min, .{ .width = @intCast(log_text.len), .height = 1 })),
+        .surface = try panel_name.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 1);
     childs[0] = name_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
-        //alloc
         ctx.arena,
         self.widget(),
-        // ms,
         max,
         childs,
     );
-    @memset(surface.buffer, .{ .style = AppStyles.dark_background() });
+
+    @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
     return surface;
 }

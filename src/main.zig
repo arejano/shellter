@@ -18,6 +18,6 @@ pub fn main() !void {
     const model = try allocator.create(ShellterApp);
     defer allocator.destroy(model);
 
-    model.* = ShellterApp.init(model, &app, allocator);
+    model.* = try ShellterApp.init(model, &app, allocator);
     try app.run(model.widget(), .{});
 }

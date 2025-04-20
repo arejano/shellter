@@ -5,19 +5,29 @@ const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
 
 const Panel = @import("../components/Panel.zig");
-const ProjectsList = @import("../components/ProjectsList.zig");
+const ProjectsPanel = @import("../components/ProjectsPanel.zig");
+const TaskList = @import("../components/TaskList.zig");
+
+pub const TaskManagerState = struct {
+    projects: std.ArrayList(usize),
+};
 
 const TaskManager = @This();
 
 // : Panel,
 // right_panel: Panel,
 
-projects_panel: ProjectsList,
+projects_panel: ProjectsPanel,
+task_panel: TaskList,
 
-pub fn init(allocator: std.mem.Allocator) TaskManager {
-    const projects_panel: ProjectsList = ProjectsList.init(allocator);
+pub fn init(allocator: std.mem.Allocator) !TaskManager {
+    const state_ptr = try allocator.create(TaskManagerState);
+    state_ptr.*.projects = std.ArrayList(usize).init(allocator);
 
-    return .{ .projects_panel = projects_panel };
+    const projects_panel: ProjectsPanel = ProjectsPanel.init(allocator, state_ptr);
+    const task_panel: TaskList = TaskList.init(allocator);
+
+    return .{ .task_panel = task_panel, .projects_panel = projects_panel };
 }
 
 pub fn widget(self: *TaskManager) vxfw.Widget {
@@ -55,38 +65,25 @@ pub fn handleEvent(self: *TaskManager, ctx: *vxfw.EventContext, event: vxfw.Even
 pub fn draw(self: *TaskManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
-    const panel_name: vxfw.Text = .{ .text = "TaskManager", .style = .{ .reverse = true } };
+    var project_list_panel: Panel = .{ .child = self.projects_panel.widget(), .label = " Projects" };
 
-    const center: vxfw.Center = .{
-        .child = panel_name.widget(),
-    };
-
-    const name_surface: vxfw.SubSurface = .{
-        //origin
-        .origin = .{ .row = 0, .col = 0 },
-        .surface = try center.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
-    };
-
-    var project_list_panel: Panel = .{ .child = self.projects_panel.widget(), .label = "Projects" };
-
-    var task_panel: Panel = .{ .child = self.projects_panel.widget(), .label = "Tasks" };
+    var task_panel: Panel = .{ .child = self.task_panel.widget(), .label = " Tasks" };
 
     const projects_list_surface: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 1, .col = 0 },
-        .surface = try project_list_panel.draw(ctx.withConstraints(ctx.min, .{ .width = 30, .height = max.height - 3 })),
+        .origin = .{ .row = 0, .col = 0 },
+        .surface = try project_list_panel.draw(ctx.withConstraints(ctx.min, .{ .width = 30, .height = max.height - 2 })),
     };
 
     const task_panel_surface: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 1, .col = 30 },
-        .surface = try task_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width - 30, .height = max.height - 3 })),
+        .origin = .{ .row = 0, .col = 31 },
+        .surface = try task_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width - 30, .height = max.height - 2 })),
     };
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
-    childs[0] = name_surface;
-    childs[1] = projects_list_surface;
-    childs[2] = task_panel_surface;
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
+    childs[0] = projects_list_surface;
+    childs[1] = task_panel_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,
@@ -95,6 +92,6 @@ pub fn draw(self: *TaskManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surf
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.dark_background() });
+    @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
     return surface;
 }
