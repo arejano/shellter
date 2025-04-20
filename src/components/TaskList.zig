@@ -3,6 +3,7 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
+const ShellterApp = @import("../shellter.zig");
 
 const TaskList = @This();
 
@@ -13,10 +14,10 @@ mouse_down: bool = false,
 has_mouse: bool = false,
 has_focus: bool = false,
 
-pub fn init(allocator: std.mem.Allocator) TaskList {
-    _ = allocator;
+userdata: ?*anyopaque = null,
 
-    return .{ .label = "" };
+pub fn init(model: *anyopaque) TaskList {
+    return .{ .userdata = model, .label = "" };
 }
 
 pub fn widget(self: *TaskList) vxfw.Widget {

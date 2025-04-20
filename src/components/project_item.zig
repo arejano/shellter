@@ -8,7 +8,8 @@ const ProjectItemStruct = ShellterApp.ProjectItemStruct;
 
 const Self = @This();
 
-project_item: ProjectItemStruct,
+label: []const u8,
+info: []const u8,
 
 //State
 mouse_down: bool = false,
@@ -20,15 +21,6 @@ pub fn widget(self: *Self) vxfw.Widget {
         .eventHandler = typeErasedEventHandler,
         .drawFn = typeErasedDrawFn,
     };
-}
-
-pub fn widget_surface(self: *Self, ctx: vxfw.DrawContext, size: vxfw.Size) vxfw.SubSurface {
-    const hw_text_surface: vxfw.SubSurface = .{
-        //origin
-        .origin = .{ .row = 1, .col = 0 },
-        .surface = try self.draw(ctx.withConstraints(ctx.min, .{ .width = size.width, .height = size.height })),
-    };
-    return hw_text_surface;
 }
 
 fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
@@ -78,34 +70,29 @@ pub fn handleEvent(self: *Self, ctx: *vxfw.EventContext, event: vxfw.Event) anye
 pub fn draw(self: *Self, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
 
-    const counter_label = try std.fmt.allocPrint(ctx.arena, " {d} | ", .{self.project_item.active_tasks});
-    const counter_label_counter = if (counter_label.len > 0) counter_label.len else 0;
-
-    const counter_text: vxfw.Text = .{
-        .text = counter_label,
-        .style = if (!self.project_item.selected) AppStyles.panel_name_light() else AppStyles.redBg(),
+    const label: vxfw.Text = .{
+        .text = self.label,
     };
 
-    const counter_surface: vxfw.SubSurface = .{
+    const label_surface: vxfw.SubSurface = .{
         //origin
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try counter_text.draw(ctx.withConstraints(ctx.min, .{ .width = @intCast(counter_label_counter), .height = max_size.height })),
+        .surface = try label.draw(ctx.withConstraints(ctx.min, .{ .width = 10, .height = max_size.height })),
     };
 
-    const project_name_text: vxfw.Text = .{
-        .text = self.project_item.label,
-        .style = .{ .reverse = self.has_mouse },
+    const info: vxfw.Text = .{
+        .text = self.info,
     };
 
-    const project_name_surface: vxfw.SubSurface = .{
+    const info_surface: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .col = @intCast(counter_label_counter - 1), .row = 0 },
-        .surface = try project_name_text.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height })),
+        .origin = .{ .row = 1, .col = 0 },
+        .surface = try info.draw(ctx.withConstraints(ctx.min, .{ .width = 10, .height = max_size.height })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
-    childs[0] = counter_surface;
-    childs[1] = project_name_surface;
+    childs[0] = label_surface;
+    childs[1] = info_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,

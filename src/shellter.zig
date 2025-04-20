@@ -55,18 +55,20 @@ bottom_panel: BottomPanelComponent,
 userdata: ?*anyopaque = null,
 feature_focus: Focus = .task,
 
+projects: std.ArrayList(usize),
+
 pub fn init(model: *ShellterApp, app: *vxfw.App, allocator: std.mem.Allocator) !ShellterApp {
     const vx_app: *vxfw.App = @ptrCast(@alignCast(app));
 
     const top_panel: TopPanel = TopPanel.init(model);
-    const task_manager: TaskManager = try TaskManager.init(allocator);
-    const finance_manager: FinanceManager = FinanceManager.init(allocator);
-    const config_manager: ConfigManager = ConfigManager.init(allocator);
+    const task_manager: TaskManager = TaskManager.init(model);
+    const finance_manager: FinanceManager = FinanceManager.init(model);
+    const config_manager: ConfigManager = ConfigManager.init(model);
 
     return .{
         .userdata = model,
         .allocator = allocator,
-        //
+        .projects = std.ArrayList(usize).init(allocator),
         .vaxis_app = vx_app,
         .top_panel = top_panel,
         .config_manager = config_manager,

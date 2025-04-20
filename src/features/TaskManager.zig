@@ -3,6 +3,7 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
+const ShellterApp = @import("../shellter.zig");
 
 const Panel = @import("../components/Panel.zig");
 const ProjectsPanel = @import("../components/ProjectsPanel.zig");
@@ -20,14 +21,13 @@ const TaskManager = @This();
 projects_panel: ProjectsPanel,
 task_panel: TaskList,
 
-pub fn init(allocator: std.mem.Allocator) !TaskManager {
-    const state_ptr = try allocator.create(TaskManagerState);
-    state_ptr.*.projects = std.ArrayList(usize).init(allocator);
+userdata: ?*anyopaque = null,
 
-    const projects_panel: ProjectsPanel = ProjectsPanel.init(allocator, state_ptr);
-    const task_panel: TaskList = TaskList.init(allocator);
+pub fn init(model: *anyopaque) TaskManager {
+    const projects_panel: ProjectsPanel = ProjectsPanel.init(model);
+    const task_panel: TaskList = TaskList.init(model);
 
-    return .{ .task_panel = task_panel, .projects_panel = projects_panel };
+    return .{ .userdata = model, .task_panel = task_panel, .projects_panel = projects_panel };
 }
 
 pub fn widget(self: *TaskManager) vxfw.Widget {

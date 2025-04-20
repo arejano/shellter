@@ -3,7 +3,8 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
-const TaskManagerState = @import("../features/TaskManager.zig").TaskManagerState;
+const ShellterApp = @import("../shellter.zig");
+const ProjectItem = @import("../components/project_item.zig");
 
 const ProjectsList = @This();
 
@@ -13,13 +14,13 @@ has_mouse: bool = false,
 has_focus: bool = false,
 
 button: vxfw.Button,
-state: ?*anyopaque = null,
+userdata: ?*anyopaque = null,
 
-pub fn init(_: std.mem.Allocator, state: *anyopaque) ProjectsList {
+pub fn init(model: *anyopaque) ProjectsList {
     return .{
-        .state = state,
+        .userdata = model,
         .button = .{
-            .userdata = state,
+            .userdata = model,
             .label = "Novo Projeto",
             .onClick = ProjectsList.newProject,
         },
@@ -28,7 +29,7 @@ pub fn init(_: std.mem.Allocator, state: *anyopaque) ProjectsList {
 
 fn newProject(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     const ptr = maybe_ptr orelse return;
-    const self: *TaskManagerState = @ptrCast(@alignCast(ptr));
+    const self: *ShellterApp = @ptrCast(@alignCast(ptr));
     // _ = self;
     try self.projects.append(12);
     return ctx.consumeAndRedraw();
@@ -68,13 +69,14 @@ pub fn handleEvent(self: *ProjectsList, ctx: *vxfw.EventContext, event: vxfw.Eve
 
 pub fn draw(self: *ProjectsList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
-    const state: *TaskManagerState = @ptrCast(@alignCast(self.state));
+    const state: *ShellterApp = @ptrCast(@alignCast(self.userdata));
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, state.projects.items.len);
 
     for (state.projects.items, 0..) |_, idx| {
-        const text: vxfw.Text = .{ .text = "Teste" };
-        const sb: vxfw.SubSurface = .{ .origin = .{ .row = @intCast(idx), .col = 0 }, .surface = try text.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })) };
+        const text = try std.fmt.allocPrint(ctx.arena, "Project:{d}", .{idx});
+        var project_item: ProjectItem = .{ .label = text, .info = "Pj info" };
+        const sb: vxfw.SubSurface = .{ .origin = .{ .row = @intCast(idx * 2), .col = 0 }, .surface = try project_item.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 2 })) };
         childs[idx] = sb;
     }
 

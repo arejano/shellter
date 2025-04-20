@@ -3,8 +3,8 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
-const TaskManagerState = @import("../features/TaskManager.zig").TaskManagerState;
 const ProjectsList = @import("../components/ProjectsList.zig");
+const ShellterApp = @import("../shellter.zig");
 
 const ProjectsPanel = @This();
 
@@ -16,19 +16,19 @@ has_mouse: bool = false,
 has_focus: bool = false,
 
 button: vxfw.Button,
-state: ?*anyopaque = null,
+userdata: ?*anyopaque = null,
 
 projects_list: ProjectsList,
 
-pub fn init(allocator: std.mem.Allocator, state: *anyopaque) ProjectsPanel {
-    const project_list: ProjectsList = ProjectsList.init(allocator, state);
+pub fn init(model: *anyopaque) ProjectsPanel {
+    const project_list: ProjectsList = ProjectsList.init(model);
 
     return .{
-        .state = state,
+        .userdata = model,
         .label = "ProjectsList",
         .projects_list = project_list,
         .button = .{
-            .userdata = state,
+            .userdata = model,
             .label = "Novo Projeto",
             .onClick = ProjectsPanel.newProject,
         },
@@ -37,8 +37,7 @@ pub fn init(allocator: std.mem.Allocator, state: *anyopaque) ProjectsPanel {
 
 fn newProject(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     const ptr = maybe_ptr orelse return;
-    const self: *TaskManagerState = @ptrCast(@alignCast(ptr));
-    // _ = self;
+    const self: *ShellterApp = @ptrCast(@alignCast(ptr));
     try self.projects.append(12);
     return ctx.consumeAndRedraw();
 }
@@ -83,7 +82,7 @@ pub fn draw(self: *ProjectsPanel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Su
         .surface = try self.button.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
     };
 
-    const state: *TaskManagerState = @ptrCast(@alignCast(self.state));
+    const state: *ShellterApp = @ptrCast(@alignCast(self.userdata));
 
     const pj_list_surface: vxfw.SubSurface = .{
         .origin = .{ .row = 0, .col = 0 },

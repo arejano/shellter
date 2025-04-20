@@ -11,8 +11,10 @@ const FinanceManager = @This();
 // : Panel,
 // right_panel: Panel,
 
-pub fn init(_: std.mem.Allocator) FinanceManager {
-    return .{};
+userdata: ?*anyopaque,
+
+pub fn init(model: *anyopaque) FinanceManager {
+    return .{ .userdata = model };
 }
 
 pub fn widget(self: *FinanceManager) vxfw.Widget {

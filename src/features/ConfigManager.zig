@@ -10,9 +10,10 @@ const ConfigManager = @This();
 
 // : Panel,
 // right_panel: Panel,
+userdata: ?*anyopaque,
 
-pub fn init(_: std.mem.Allocator) ConfigManager {
-    return .{};
+pub fn init(model: *anyopaque) ConfigManager {
+    return .{ .userdata = model };
 }
 
 pub fn widget(self: *ConfigManager) vxfw.Widget {
