@@ -15,7 +15,12 @@ pub fn redBg() vaxis.Style {
 }
 
 pub fn dark_background() vaxis.Style {
-    const def: vaxis.Style = .{ .fg = .{ .rgb = .{ 255, 255, 255 } }, .bg = .{ .rgb = .{ 17, 17, 27 } } };
+    const def: vaxis.Style = .{ .fg = .{ .rgb = .{ 144, 144, 144 } }, .bg = .{ .rgb = .{ 17, 17, 27 } } };
+    return def;
+}
+
+pub fn wezterm() vaxis.Style {
+    const def: vaxis.Style = .{ .fg = .{ .rgb = .{ 144, 144, 144 } }, .bg = .{ .rgb = .{ 51, 51, 51 } } };
     return def;
 }
 

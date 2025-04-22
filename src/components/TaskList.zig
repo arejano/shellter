@@ -72,6 +72,6 @@ pub fn draw(self: *TaskList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
+    // @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
     return surface;
 }

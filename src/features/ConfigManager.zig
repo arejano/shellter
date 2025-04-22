@@ -8,8 +8,6 @@ const Panel = @import("../components/Panel.zig");
 
 const ConfigManager = @This();
 
-// : Panel,
-// right_panel: Panel,
 userdata: ?*anyopaque,
 
 pub fn init(model: *anyopaque) ConfigManager {

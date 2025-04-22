@@ -78,6 +78,22 @@ pub fn init(model: *ShellterApp, app: *vxfw.App, allocator: std.mem.Allocator) !
     };
 }
 
+pub fn set_feature_focus(self: *ShellterApp, focus: Focus, ctx: *vxfw.EventContext) anyerror!void {
+    self.feature_focus = focus;
+
+    switch (self.feature_focus) {
+        .finance => {
+            try ctx.requestFocus(self.finance_manager.widget());
+        },
+        .task => {
+            try ctx.requestFocus(self.task_manager.widget());
+        },
+        .config => {
+            try ctx.requestFocus(self.config_manager.widget());
+        },
+    }
+}
+
 pub fn widget(self: *ShellterApp) vxfw.Widget {
     return .{
         .userdata = self,
@@ -98,7 +114,7 @@ fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw
 
 pub fn handleEvent(self: *ShellterApp, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
     switch (event) {
-        .init => return ctx.requestFocus(self.widget()),
+        .init => return ctx.requestFocus(self.task_manager.widget()),
         .key_press => |key| {
             if (key.matches('c', .{ .ctrl = true })) {
                 ctx.quit = true;

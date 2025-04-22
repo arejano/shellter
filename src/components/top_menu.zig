@@ -25,13 +25,13 @@ button_focus_right: vxfw.Button,
 
 pub fn init(model: *ShellterApp) TopMenu {
     const bfl: vxfw.Button = .{
-        .label = "F2:TASKS",
+        .label = "f2: tarefas",
         .onClick = TopMenu.focusTask,
         .userdata = model,
     };
 
     const bfr: vxfw.Button = .{
-        .label = "F3:FINANCE",
+        .label = "f3:financeiro",
         .onClick = TopMenu.focusFinance,
         .userdata = model,
     };
@@ -45,16 +45,14 @@ pub fn init(model: *ShellterApp) TopMenu {
 fn focusTask(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     const ptr = maybe_ptr orelse return;
     const self: *ShellterApp = @ptrCast(@alignCast(ptr));
-    self.feature_focus = .task;
-    // try ctx.requestFocus(self.left_panel.widget());
+    try self.set_feature_focus(.task, ctx);
     return ctx.consumeAndRedraw();
 }
 
 fn focusFinance(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     const ptr = maybe_ptr orelse return;
     const self: *ShellterApp = @ptrCast(@alignCast(ptr));
-    self.feature_focus = self.feature_focus.next();
-    // try ctx.requestFocus(self.right_panel.widget());
+    try self.set_feature_focus(.finance, ctx);
     return ctx.consumeAndRedraw();
 }
 
@@ -132,7 +130,7 @@ pub fn draw(self: *TopMenu, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface 
 
     const br_s: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 0, .col = @intCast(self.button_focus_left.label.len + 3) },
+        .origin = .{ .row = 0, .col = @intCast(self.button_focus_left.label.len + 2) },
         .surface = try self.button_focus_right.draw(ctx.withConstraints(ctx.min, .{ .width = @intCast(self.button_focus_right.label.len + 2), .height = 1 })),
     };
 
@@ -149,6 +147,6 @@ pub fn draw(self: *TopMenu, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface 
         childs,
     );
     //Isso garante o background de outra cor
-    @memset(surface.buffer, .{ .style = AppStyles.dark_background() });
+    // @memset(surface.buffer, .{ .style = AppStyles.dark_background() });
     return surface;
 }

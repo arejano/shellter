@@ -13,17 +13,11 @@ mouse_down: bool = false,
 has_mouse: bool = false,
 has_focus: bool = false,
 
-button: vxfw.Button,
 userdata: ?*anyopaque = null,
 
 pub fn init(model: *anyopaque) ProjectsList {
     return .{
         .userdata = model,
-        .button = .{
-            .userdata = model,
-            .label = "Novo Projeto",
-            .onClick = ProjectsList.newProject,
-        },
     };
 }
 
@@ -87,6 +81,6 @@ pub fn draw(self: *ProjectsList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Sur
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.cat_panel2_background() });
+    // @memset(surface.buffer, .{ .style = AppStyles.cat_panel2_background() });
     return surface;
 }

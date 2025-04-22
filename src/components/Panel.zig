@@ -38,17 +38,16 @@ fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw
 }
 
 pub fn handleEvent(self: *Panel, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    _ = ctx;
     switch (event) {
         .key_press => |_| {},
         .mouse => |_| {},
         .focus_in => {
             self.has_focus = true;
-            // return ctx.consumeAndRedraw();
+            return ctx.consumeAndRedraw();
         },
         .focus_out => {
             self.has_focus = false;
-            // return ctx.consumeAndRedraw();
+            return ctx.consumeAndRedraw();
         },
         .mouse_enter => {},
         .mouse_leave => {},
@@ -59,12 +58,14 @@ pub fn handleEvent(self: *Panel, ctx: *vxfw.EventContext, event: vxfw.Event) any
 pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
 
-    const panel_name: vxfw.Text = .{ .text = self.label, .style = AppStyles.cat_disable() };
+    const label = if (self.has_focus) "Focus" else self.label;
+    const panel_name: vxfw.Text = .{ .text = label, .style = .{ .reverse = self.has_focus } };
+    const center: vxfw.Center = .{ .child = panel_name.widget() };
 
     const name_surface: vxfw.SubSurface = .{
         //origin
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try panel_name.draw(ctx.withConstraints(ctx.min, .{ .width = 25, .height = 1 })),
+        .surface = try center.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = 1 })),
     };
 
     // const border: vxfw.Border = .{ .child = self.child, .theme = BorderThemes.default(), .style = AppStyles.dark_background() };
@@ -73,7 +74,7 @@ pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
         //origin
         .z_index = 1,
         .origin = .{ .row = 1, .col = 0 },
-        .surface = try self.child.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height })),
+        .surface = try self.child.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height - 10 })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
@@ -87,6 +88,6 @@ pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.cat_disable() });
+    @memset(surface.buffer, .{ .style = AppStyles.wezterm() });
     return surface;
 }

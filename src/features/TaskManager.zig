@@ -13,6 +13,36 @@ pub const TaskManagerState = struct {
     projects: std.ArrayList(usize),
 };
 
+pub const TaskManagerFocus = enum {
+    groups,
+    tasks,
+    info,
+
+    pub fn previous(self: TaskManagerFocus) TaskManagerFocus {
+        return switch (self) {
+            .groups => .info,
+            .info => .tasks,
+            .tasks => .groups,
+        };
+    }
+
+    pub fn next(self: TaskManagerFocus) TaskManagerFocus {
+        return switch (self) {
+            .groups => .tasks,
+            .tasks => .info,
+            .info => .groups,
+        };
+    }
+
+    pub fn label(self: TaskManagerFocus) []const u8 {
+        return switch (self) {
+            .groups => "groups",
+            .tasks => "tasks",
+            .info => "info",
+        };
+    }
+};
+
 const TaskManager = @This();
 
 // : Panel,
@@ -22,6 +52,10 @@ projects_panel: ProjectsPanel,
 task_panel: TaskList,
 
 userdata: ?*anyopaque = null,
+
+focus: bool = false,
+feature_focus: TaskManagerFocus = .groups,
+feature_label: []const u8 = "groups",
 
 pub fn init(model: *anyopaque) TaskManager {
     const projects_panel: ProjectsPanel = ProjectsPanel.init(model);
@@ -49,13 +83,32 @@ fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw
 }
 
 pub fn handleEvent(self: *TaskManager, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    _ = self;
-    _ = ctx;
     switch (event) {
-        .key_press => |_| {},
+        .key_press => |key| {
+            if (key.matches('a', .{ .ctrl = false })) {
+                self.focus = !self.focus;
+                ctx.consumeAndRedraw();
+            }
+
+            if (key.matches('h', .{ .ctrl = false })) {
+                self.feature_focus = self.feature_focus.previous();
+                ctx.consumeAndRedraw();
+            }
+
+            if (key.matches('l', .{ .ctrl = false })) {
+                self.feature_focus = self.feature_focus.next();
+                ctx.consumeAndRedraw();
+            }
+        },
         .mouse => |_| {},
-        .focus_in => {},
-        .focus_out => {},
+        .focus_in => {
+            self.focus = true;
+            try ctx.requestFocus(self.task_panel.widget());
+        },
+        .focus_out => {
+            self.focus = false;
+            ctx.consumeAndRedraw();
+        },
         .mouse_enter => {},
         .mouse_leave => {},
         else => {},
@@ -65,20 +118,19 @@ pub fn handleEvent(self: *TaskManager, ctx: *vxfw.EventContext, event: vxfw.Even
 pub fn draw(self: *TaskManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
-    var project_list_panel: Panel = .{ .child = self.projects_panel.widget(), .label = " Projects" };
-
-    var task_panel: Panel = .{ .child = self.task_panel.widget(), .label = " Tasks" };
+    var project_list_panel: Panel = .{ .child = self.projects_panel.widget(), .label = self.feature_focus.label() };
+    var task_panel: Panel = .{ .child = self.task_panel.widget(), .label = " tarefas" };
 
     const projects_list_surface: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 0, .col = 0 },
+        .origin = .{ .row = 0, .col = 1 },
         .surface = try project_list_panel.draw(ctx.withConstraints(ctx.min, .{ .width = 30, .height = max.height - 2 })),
     };
 
     const task_panel_surface: vxfw.SubSurface = .{
         //origin
-        .origin = .{ .row = 0, .col = 31 },
-        .surface = try task_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width - 30, .height = max.height - 2 })),
+        .origin = .{ .row = 0, .col = 32 },
+        .surface = try task_panel.draw(ctx.withConstraints(ctx.min, .{ .width = max.width - 33, .height = max.height - 2 })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
@@ -92,6 +144,8 @@ pub fn draw(self: *TaskManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surf
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.cat_background() });
+    if (self.focus) {
+        @memset(surface.buffer, .{ .style = AppStyles.wezterm() });
+    }
     return surface;
 }

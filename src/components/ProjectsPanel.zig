@@ -15,7 +15,6 @@ mouse_down: bool = false,
 has_mouse: bool = false,
 has_focus: bool = false,
 
-button: vxfw.Button,
 userdata: ?*anyopaque = null,
 
 projects_list: ProjectsList,
@@ -27,11 +26,6 @@ pub fn init(model: *anyopaque) ProjectsPanel {
         .userdata = model,
         .label = "ProjectsList",
         .projects_list = project_list,
-        .button = .{
-            .userdata = model,
-            .label = "Novo Projeto",
-            .onClick = ProjectsPanel.newProject,
-        },
     };
 }
 
@@ -77,28 +71,22 @@ pub fn handleEvent(self: *ProjectsPanel, ctx: *vxfw.EventContext, event: vxfw.Ev
 pub fn draw(self: *ProjectsPanel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
-    const button_surface: vxfw.SubSurface = .{
-        .origin = .{ .row = max.height - 2, .col = 0 },
-        .surface = try self.button.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
-    };
-
     const state: *ShellterApp = @ptrCast(@alignCast(self.userdata));
 
     const pj_list_surface: vxfw.SubSurface = .{
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try self.projects_list.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height - 2 })),
+        .surface = try self.projects_list.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height - 1 })),
     };
 
     const text_fmt = try std.fmt.allocPrint(ctx.arena, "{d}", .{state.projects.items.len});
     const pj_text: vxfw.Text = .{ .text = text_fmt };
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
-    childs[0] = button_surface;
-    childs[1] = .{
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
+    childs[0] = .{
         .origin = .{ .row = max.height - 10, .col = 0 },
         .surface = try pj_text.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
     };
-    childs[2] = pj_list_surface;
+    childs[1] = pj_list_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,
@@ -106,7 +94,5 @@ pub fn draw(self: *ProjectsPanel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Su
         max,
         childs,
     );
-
-    @memset(surface.buffer, .{ .style = AppStyles.cat_panel2_background() });
     return surface;
 }

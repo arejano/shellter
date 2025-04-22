@@ -8,9 +8,6 @@ const Panel = @import("../components/Panel.zig");
 
 const FinanceManager = @This();
 
-// : Panel,
-// right_panel: Panel,
-
 userdata: ?*anyopaque,
 
 pub fn init(model: *anyopaque) FinanceManager {
@@ -54,7 +51,7 @@ pub fn draw(self: *FinanceManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.S
 
     const name: vxfw.Text = .{ .text = "Hue" };
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 3);
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 1);
     childs[0] = .{
         .origin = .{ .row = 0, .col = 0 },
         .surface = try name.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
@@ -67,6 +64,6 @@ pub fn draw(self: *FinanceManager, ctx: vxfw.DrawContext) Allocator.Error!vxfw.S
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.dark_background() });
+    @memset(surface.buffer, .{ .style = AppStyles.wezterm() });
     return surface;
 }
