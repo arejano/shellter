@@ -37,6 +37,7 @@
     // internet connectivity.
     .dependencies = .{
         .vaxis = .{ .path = "libs/libvaxis" },
+        .sqlite = .{ .path = "libs/zig-sqlite" },
         .capy = .{ .path = "libs/capy" },
         // See `zig fetch --save <url>` for a command-line interface for adding dependencies.
         //.example = .{

@@ -3,7 +3,9 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
-const ShellterApp = @import("../shellter.zig");
+const TaskManager = @import("../features//TaskManager.zig");
+const TaskManagerState = TaskManager.TaskManagerState;
+const Task = TaskManager.Task;
 
 const TaskList = @This();
 
@@ -17,7 +19,7 @@ has_focus: bool = false,
 userdata: ?*anyopaque = null,
 
 pub fn init(model: *anyopaque) TaskList {
-    return .{ .userdata = model, .label = "" };
+    return .{ .userdata = model, .label = "Tarefinhas" };
 }
 
 pub fn widget(self: *TaskList) vxfw.Widget {
@@ -39,10 +41,13 @@ fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw
 }
 
 pub fn handleEvent(self: *TaskList, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    _ = self;
-    _ = ctx;
     switch (event) {
-        .key_press => |_| {},
+        .key_press => |key| {
+            if (key.matches('a', .{ .ctrl = false })) {
+                try self.add_task();
+                return ctx.consumeAndRedraw();
+            }
+        },
         .mouse => |_| {},
         .focus_in => {},
         .focus_out => {},
@@ -52,10 +57,19 @@ pub fn handleEvent(self: *TaskList, ctx: *vxfw.EventContext, event: vxfw.Event) 
     }
 }
 
+pub fn add_task(self: *TaskList) !void {
+    const task: Task = .{ .id = 0, .description = "Nova Tarefa", .due_date = undefined, .created_at = std.time.timestamp(), .priority = .low, .status = .open };
+    const state: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
+    try state.tasks.append(task);
+}
+
 pub fn draw(self: *TaskList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
 
-    const panel_name: vxfw.Text = .{ .text = self.label, .style = .{ .reverse = true } };
+    const model: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
+    const label = try std.fmt.allocPrint(ctx.arena, "{s}:{d}", .{ self.label, model.tasks.items.len });
+
+    const panel_name: vxfw.Text = .{ .text = label, .style = .{ .reverse = true } };
 
     const name_surface: vxfw.SubSurface = .{
         .origin = .{ .row = 0, .col = 0 },

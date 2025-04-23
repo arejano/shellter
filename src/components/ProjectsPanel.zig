@@ -4,7 +4,7 @@ const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
 const ProjectsList = @import("../components/ProjectsList.zig");
-const ShellterApp = @import("../shellter.zig");
+const TaskManagerState = @import("../features//TaskManager.zig").TaskManagerState;
 
 const ProjectsPanel = @This();
 
@@ -18,6 +18,7 @@ has_focus: bool = false,
 userdata: ?*anyopaque = null,
 
 projects_list: ProjectsList,
+select_idx: usize = 0,
 
 pub fn init(model: *anyopaque) ProjectsPanel {
     const project_list: ProjectsList = ProjectsList.init(model);
@@ -29,11 +30,30 @@ pub fn init(model: *anyopaque) ProjectsPanel {
     };
 }
 
-fn newProject(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
-    const ptr = maybe_ptr orelse return;
-    const self: *ShellterApp = @ptrCast(@alignCast(ptr));
-    try self.projects.append(12);
-    return ctx.consumeAndRedraw();
+pub fn hover_up(self: *ProjectsPanel) void {
+    const model: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
+    const last_idx = model.projects.items.len - 1;
+
+    if (self.select_idx == 0) {
+        self.select_idx = last_idx;
+        model.*.project_hover_idx = self.select_idx;
+    } else {
+        self.select_idx = self.select_idx - 1;
+        model.*.project_hover_idx = self.select_idx;
+    }
+}
+
+pub fn hover_down(self: *ProjectsPanel) void {
+    const model: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
+    const new_idx = self.select_idx + 1;
+
+    if (new_idx > model.projects.items.len - 1) {
+        self.select_idx = 0;
+        model.project_hover_idx = 0;
+    } else {
+        self.select_idx = new_idx;
+        model.project_hover_idx = new_idx;
+    }
 }
 
 pub fn widget(self: *ProjectsPanel) vxfw.Widget {
@@ -55,38 +75,55 @@ fn typeErasedDrawFn(ptr: *anyopaque, ctx: vxfw.DrawContext) Allocator.Error!vxfw
 }
 
 pub fn handleEvent(self: *ProjectsPanel, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
-    _ = self;
-    _ = ctx;
     switch (event) {
-        .key_press => |_| {},
+        .key_press => |key| {
+            if (key.matches('a', .{ .ctrl = false })) {
+                try self.add_project();
+                return ctx.consumeAndRedraw();
+            }
+
+            if (key.matches('j', .{ .ctrl = false })) {
+                self.hover_down();
+                return ctx.consumeAndRedraw();
+            }
+
+            if (key.matches('k', .{ .ctrl = false })) {
+                self.hover_up();
+                return ctx.consumeAndRedraw();
+            }
+        },
         .mouse => |_| {},
-        .focus_in => {},
-        .focus_out => {},
+        .focus_in => {
+            // try ctx.requestFocus(self.projects_list.widget());
+            self.has_focus = true;
+            ctx.consumeAndRedraw();
+        },
+        .focus_out => {
+            self.has_focus = false;
+            ctx.consumeAndRedraw();
+        },
         .mouse_enter => {},
         .mouse_leave => {},
         else => {},
     }
 }
 
+pub fn add_project(self: *ProjectsPanel) !void {
+    const state: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
+    try state.projects.append(12);
+}
+
 pub fn draw(self: *ProjectsPanel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
-
-    const state: *ShellterApp = @ptrCast(@alignCast(self.userdata));
+    // const state: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
 
     const pj_list_surface: vxfw.SubSurface = .{
         .origin = .{ .row = 0, .col = 0 },
         .surface = try self.projects_list.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = max.height - 1 })),
     };
 
-    const text_fmt = try std.fmt.allocPrint(ctx.arena, "{d}", .{state.projects.items.len});
-    const pj_text: vxfw.Text = .{ .text = text_fmt };
-
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
-    childs[0] = .{
-        .origin = .{ .row = max.height - 10, .col = 0 },
-        .surface = try pj_text.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 1 })),
-    };
-    childs[1] = pj_list_surface;
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 1);
+    childs[0] = pj_list_surface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,

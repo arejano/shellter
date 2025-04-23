@@ -58,28 +58,15 @@ pub fn handleEvent(self: *Panel, ctx: *vxfw.EventContext, event: vxfw.Event) any
 pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
 
-    const label = if (self.has_focus) "Focus" else self.label;
-    const panel_name: vxfw.Text = .{ .text = label, .style = .{ .reverse = self.has_focus } };
-    const center: vxfw.Center = .{ .child = panel_name.widget() };
-
-    const name_surface: vxfw.SubSurface = .{
-        //origin
-        .origin = .{ .row = 0, .col = 0 },
-        .surface = try center.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = 1 })),
-    };
-
-    // const border: vxfw.Border = .{ .child = self.child, .theme = BorderThemes.default(), .style = AppStyles.dark_background() };
-
     const slot_suface: vxfw.SubSurface = .{
         //origin
         .z_index = 1,
-        .origin = .{ .row = 1, .col = 0 },
-        .surface = try self.child.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height - 10 })),
+        .origin = .{ .row = 0, .col = 0 },
+        .surface = try self.child.draw(ctx.withConstraints(ctx.min, .{ .width = max_size.width, .height = max_size.height })),
     };
 
-    const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
-    childs[0] = name_surface;
-    childs[1] = slot_suface;
+    const childs = try ctx.arena.alloc(vxfw.SubSurface, 1);
+    childs[0] = slot_suface;
 
     const surface = try vxfw.Surface.initWithChildren(
         ctx.arena,
@@ -88,6 +75,5 @@ pub fn draw(self: *Panel, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
         childs,
     );
 
-    @memset(surface.buffer, .{ .style = AppStyles.wezterm() });
     return surface;
 }

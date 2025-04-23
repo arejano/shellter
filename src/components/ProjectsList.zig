@@ -3,8 +3,8 @@ const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 const Allocator = std.mem.Allocator;
 const AppStyles = @import("../styles.zig");
-const ShellterApp = @import("../shellter.zig");
 const ProjectItem = @import("../components/project_item.zig");
+const TaskManagerState = @import("../features//TaskManager.zig").TaskManagerState;
 
 const ProjectsList = @This();
 
@@ -23,7 +23,7 @@ pub fn init(model: *anyopaque) ProjectsList {
 
 fn newProject(maybe_ptr: ?*anyopaque, ctx: *vxfw.EventContext) anyerror!void {
     const ptr = maybe_ptr orelse return;
-    const self: *ShellterApp = @ptrCast(@alignCast(ptr));
+    const self: *TaskManagerState = @ptrCast(@alignCast(ptr));
     // _ = self;
     try self.projects.append(12);
     return ctx.consumeAndRedraw();
@@ -63,13 +63,14 @@ pub fn handleEvent(self: *ProjectsList, ctx: *vxfw.EventContext, event: vxfw.Eve
 
 pub fn draw(self: *ProjectsList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max = ctx.max.size();
-    const state: *ShellterApp = @ptrCast(@alignCast(self.userdata));
+    const state: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, state.projects.items.len);
 
     for (state.projects.items, 0..) |_, idx| {
         const text = try std.fmt.allocPrint(ctx.arena, "Project:{d}", .{idx});
-        var project_item: ProjectItem = .{ .label = text, .info = "Pj info" };
+        const select_counter = try std.fmt.allocPrint(ctx.arena, "Info:{d}", .{state.project_hover_idx});
+        var project_item: ProjectItem = .{ .label = text, .info = select_counter, .selected = idx == state.project_hover_idx };
         const sb: vxfw.SubSurface = .{ .origin = .{ .row = @intCast(idx * 2), .col = 0 }, .surface = try project_item.draw(ctx.withConstraints(ctx.min, .{ .width = max.width, .height = 2 })) };
         childs[idx] = sb;
     }
@@ -81,6 +82,5 @@ pub fn draw(self: *ProjectsList, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Sur
         childs,
     );
 
-    // @memset(surface.buffer, .{ .style = AppStyles.cat_panel2_background() });
     return surface;
 }

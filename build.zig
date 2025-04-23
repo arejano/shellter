@@ -33,6 +33,13 @@ pub fn build(b: *std.Build) void {
 
     const vaxis_dep = b.dependency("vaxis", .{ .target = target, .optimize = optimize });
     exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
+
+    const sqlite = b.dependency("sqlite", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("sqlite", sqlite.module("sqlite"));
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);

@@ -14,6 +14,7 @@ info: []const u8,
 //State
 mouse_down: bool = false,
 has_mouse: bool = false,
+selected: bool = false,
 
 pub fn widget(self: *Self) vxfw.Widget {
     return .{
@@ -70,24 +71,25 @@ pub fn handleEvent(self: *Self, ctx: *vxfw.EventContext, event: vxfw.Event) anye
 pub fn draw(self: *Self, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
     const max_size = ctx.max.size();
 
-    const label: vxfw.Text = .{
-        .text = self.label,
-    };
+    const style: vaxis.Style = if (self.selected) AppStyles.cat_select() else .{};
+
+    const label: vxfw.Text = .{ .text = self.label, .style = style };
 
     const label_surface: vxfw.SubSurface = .{
         //origin
         .origin = .{ .row = 0, .col = 0 },
-        .surface = try label.draw(ctx.withConstraints(ctx.min, .{ .width = 10, .height = max_size.height })),
+        .surface = try label.draw(ctx.withConstraints(ctx.min, .{ .width = AppStyles.left_panel_size, .height = max_size.height })),
     };
 
     const info: vxfw.Text = .{
         .text = self.info,
+        .style = style,
     };
 
     const info_surface: vxfw.SubSurface = .{
         //origin
         .origin = .{ .row = 1, .col = 0 },
-        .surface = try info.draw(ctx.withConstraints(ctx.min, .{ .width = 10, .height = max_size.height })),
+        .surface = try info.draw(ctx.withConstraints(ctx.min, .{ .width = AppStyles.left_panel_size, .height = max_size.height })),
     };
 
     const childs = try ctx.arena.alloc(vxfw.SubSurface, 2);
@@ -100,5 +102,8 @@ pub fn draw(self: *Self, ctx: vxfw.DrawContext) Allocator.Error!vxfw.Surface {
         max_size,
         childs,
     );
+    if (self.selected) {
+        @memset(surface.buffer, .{ .style = AppStyles.cat_select() });
+    }
     return surface;
 }
