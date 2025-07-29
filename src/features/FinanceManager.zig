@@ -14,6 +14,8 @@ pub fn init(model: *anyopaque) FinanceManager {
     return .{ .userdata = model };
 }
 
+pub fn deinit(_: *FinanceManager) void {}
+
 pub fn widget(self: *FinanceManager) vxfw.Widget {
     return .{
         .userdata = self,

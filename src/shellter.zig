@@ -9,7 +9,8 @@ const BottomPanelComponent = @import("components/bottom_panel.zig");
 const TaskManager = @import("features/TaskManager.zig");
 const FinanceManager = @import("features/FinanceManager.zig");
 
-const Repository = @import("repository.zig");
+const Repository = @import("domain/repository.zig");
+const Database = @import("domain/database.zig");
 
 const Panel = @import("components/Panel.zig");
 
@@ -39,29 +40,44 @@ bottom_panel: BottomPanelComponent,
 userdata: ?*anyopaque = null,
 feature_focus: Focus = .task,
 feature_child_focus_label: []const u8 = "",
+db: Database,
 
 projects: std.ArrayList(usize),
 
-pub fn init(model: *ShellterApp, app: *vxfw.App, allocator: std.mem.Allocator) !ShellterApp {
+pub fn init(
+    model: *ShellterApp,
+    app: *vxfw.App,
+    allocator: std.mem.Allocator,
+) !ShellterApp {
     const vx_app: *vxfw.App = @ptrCast(@alignCast(app));
 
-    const repository = try allocator.create(Repository);
-    defer allocator.destroy(repository);
+    // const repository = try allocator.create(Repository);
+    // defer allocator.destroy(repository);
 
-    repository.* = try Repository.init(allocator);
+    // repository.* = try Repository.init(allocator);
+    // try repository.*.test_db();
 
-    const task_manager: TaskManager = try TaskManager.init(allocator, model, repository);
+    const db_path: []const u8 = "shellter_data.db";
+    var db = try Database.init(db_path);
+
+    const task_manager: TaskManager = try TaskManager.init(allocator, model, &db);
     const finance_manager: FinanceManager = FinanceManager.init(model);
 
     return .{
         .userdata = model,
+        .db = db,
         .allocator = allocator,
         .projects = std.ArrayList(usize).init(allocator),
         .vaxis_app = vx_app,
-        .task_manager = task_manager,
+        // .task_manager = task_manager,
         .finance_manager = finance_manager,
         .bottom_panel = .{ .userdata = model },
     };
+}
+
+pub fn deinit(_: *ShellterApp) void {
+    // self.task_manager.deinit();
+    // self.finance_manager.deinit();
 }
 
 pub fn set_feature_focus(self: *ShellterApp, focus: Focus, ctx: *vxfw.EventContext) anyerror!void {

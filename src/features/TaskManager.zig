@@ -9,6 +9,11 @@ const Panel = @import("../components/Panel.zig");
 const ProjectsPanel = @import("../components/ProjectsPanel.zig");
 const TaskList = @import("../components/TaskList.zig");
 
+const Repository = @import("../domain/repository.zig").Repository;
+const Database = @import("../domain/database.zig");
+
+const ProjectRepository = @import("../domain/projects_repository.zig");
+
 const TaskStatus = enum {
     open,
     in_progress,
@@ -97,9 +102,6 @@ pub const TaskManagerState = struct {
 
 const TaskManager = @This();
 
-// : Panel,
-// right_panel: Panel,
-
 projects_panel: ProjectsPanel,
 task_panel: TaskList,
 
@@ -110,28 +112,34 @@ focus: bool = false,
 feature_focus: TaskManagerFocus = .groups,
 feature_label: []const u8 = "groups",
 
-database: ?*anyopaque = null,
+repository: ProjectRepository,
+allocator: std.mem.Allocator,
 
-pub fn init(allocator: std.mem.Allocator, model: *anyopaque, database: *anyopaque) !TaskManager {
+pub fn init(allocator: std.mem.Allocator, model: *anyopaque, db: *Database) !TaskManager {
     const state = try allocator.create(TaskManagerState);
+    defer allocator.destroy(state);
+
+    var repo = ProjectRepository.init(db);
+    try repo.create_table();
 
     state.*.projects = std.ArrayList(usize).init(allocator);
     state.*.tasks = std.ArrayList(Task).init(allocator);
 
-    const projects_panel: ProjectsPanel = ProjectsPanel.init(state);
+    const projects_panel: ProjectsPanel = ProjectsPanel.init(state, &repo);
     const task_panel: TaskList = TaskList.init(state);
 
     return .{
+        .allocator = allocator,
         .userdata = model,
         .state = state,
-        .database = database,
+        .repository = repo,
         .task_panel = task_panel,
         .projects_panel = projects_panel,
     };
 }
 
-pub fn deinit(self: *TaskManager) void {
-    _ = self;
+pub fn deinit(_: *TaskManager) void {
+    // self.allocator.destroy(self.state.?);
 }
 
 pub fn widget(self: *TaskManager) vxfw.Widget {

@@ -38,7 +38,7 @@
     .dependencies = .{
         .vaxis = .{ .path = "libs/libvaxis" },
         .sqlite = .{ .path = "libs/zig-sqlite" },
-        .capy = .{ .path = "libs/capy" },
+        // .profiler = .{ .path = "libs/profiler" },
         // See `zig fetch --save <url>` for a command-line interface for adding dependencies.
         //.example = .{
         //    // When updating this field to a new URL, be sure to delete the corresponding

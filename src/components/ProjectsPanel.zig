@@ -6,6 +6,9 @@ const AppStyles = @import("../styles.zig");
 const ProjectsList = @import("../components/ProjectsList.zig");
 const TaskManagerState = @import("../features//TaskManager.zig").TaskManagerState;
 
+const ShellterApp = @import("../shellter.zig");
+const ProjectRepository = @import("../domain/projects_repository.zig");
+
 const ProjectsPanel = @This();
 
 label: []const u8,
@@ -16,14 +19,16 @@ has_mouse: bool = false,
 has_focus: bool = false,
 
 userdata: ?*anyopaque = null,
+repo: *ProjectRepository,
 
 projects_list: ProjectsList,
 select_idx: usize = 0,
 
-pub fn init(model: *anyopaque) ProjectsPanel {
+pub fn init(model: *anyopaque, repo: *ProjectRepository) ProjectsPanel {
     const project_list: ProjectsList = ProjectsList.init(model);
 
     return .{
+        .repo = repo,
         .userdata = model,
         .label = "ProjectsList",
         .projects_list = project_list,
@@ -109,6 +114,7 @@ pub fn handleEvent(self: *ProjectsPanel, ctx: *vxfw.EventContext, event: vxfw.Ev
 }
 
 pub fn add_project(self: *ProjectsPanel) !void {
+    try self.repo.*.createProject();
     const state: *TaskManagerState = @ptrCast(@alignCast(self.userdata));
     try state.projects.append(12);
 }

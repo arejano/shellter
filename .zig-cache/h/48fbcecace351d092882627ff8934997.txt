@@ -1,0 +1,3 @@
+0
+132 2814749770203312 1745383267327319000 d25dc8f1da2e8e74882c257fa4c806a0 0 C:\projects\zig\shellter\libs\zig-sqlite\c\workaround.c
+114 2814749770203313 1745383267327319000 5ec30da356686037883e8ee27221e4e5 0 C:\projects\zig\shellter\libs\zig-sqlite\c\workaround.h
