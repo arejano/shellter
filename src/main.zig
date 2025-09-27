@@ -15,7 +15,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     const model = try allocator.create(App);
-    model.* = App.init(model, allocator);
+    model.* = try App.init(model, allocator);
 
     var app = try vxfw.App.init(allocator);
     defer app.deinit();
