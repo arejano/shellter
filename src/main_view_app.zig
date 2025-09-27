@@ -76,11 +76,37 @@ pub fn typeErasedEventHandler(ptr: *anyopaque, ctx: *vxfw.EventContext, event: v
     return handleEvent(self, ctx, event);
 }
 
+pub fn getInactiveComponents(self: *MainViewApp) std.mem.Allocator.Error!std.array_list.Managed(*const ComponentItem) {
+    var temp = std.array_list.Managed(*const ComponentItem).init(self.allocator);
+
+    self.component_list.items[0].status = .Inactive;
+    self.component_list.items[1].status = .Inactive;
+
+    for (self.component_list.items) |item| {
+        if (item.status == .Inactive) {
+            // std.debug.print("{any}", .{&item});
+            temp.append(&item);
+        }
+    }
+
+    return temp;
+}
+
 pub fn handleEvent(self: *MainViewApp, ctx: *vxfw.EventContext, event: vxfw.Event) anyerror!void {
     switch (event) {
         .key_press => |key| {
             if (key.matches('p', .{})) {
                 std.debug.print("\nTestando\n", .{});
+
+                const pointer_active_list = try self.getInactiveComponents();
+                defer {
+                    pointer_active_list.deinit();
+                }
+
+                // for (pointer_active_list) |pointer| {
+                //     std.debug.print("{any}", .{pointer});
+                // }
+
                 return;
             }
         },

@@ -1,22 +1,24 @@
-info(vaxis): pixel mouse capability detected
-info(vaxis): unicode capability detected
-info(vaxis): color_scheme_updates capability detected
-info(vaxis): kitty keyboard capability detected
-info(vaxis): kitty graphics capability detected
-debug(vaxis): enabling mouse mode: cell coordinates
-Iniciando o appdebug(vaxis): resizing screen: width=60 height=28
-debug(vaxis): resizing screen: width=60 height=28
+run
++- run exe nohz
+   +- compile exe nohz Debug native 1 errors
+src/main_view_app.zig:88:24: error: error union is ignored
+            temp.append(&item);
+            ~~~~~~~~~~~^~~~~~~
+src/main_view_app.zig:88:24: note: consider using 'try', 'catch', or 'if'
+referenced by:
+    handleEvent: src/main_view_app.zig:101:75
+    typeErasedEventHandler: src/main_view_app.zig:76:23
+    10 reference(s) hidden; use '-freference-trace=12' to see all references
+error: the following command failed with 1 compilation errors:
+/home/arejano/.local/share/mise/installs/zig/0.15.1/zig build-exe -ODebug --dep nohz --dep vaxis -Mroot=/home/arejano/projects/shellter/src/main.zig -Mnohz=/home/arejano/projects/shellter/src/root.zig -ODebug --dep code_point --dep Graphemes --dep DisplayWidth --dep zigimg -Mvaxis=/home/arejano/projects/shellter/libs/libvaxis/src/main.zig -ODebug --dep config -Mcode_point=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/code_point.zig -ODebug --dep gbp --dep code_point --dep config=config0 -MGraphemes=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/Graphemes.zig -ODebug --dep dwp --dep ascii --dep code_point --dep Graphemes --dep options -MDisplayWidth=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/DisplayWidth.zig -ODebug --dep zigimg -Mzigimg=/home/arejano/.cache/zig/p/zigimg-0.1.0-8_eo2vHnEwCIVW34Q14Ec-xUlzIoVg86-7FU2ypPtxms/zigimg.zig -Mconfig=.zig-cache/c/edbe76012422d720177160b52386c0fc/options.zig -Mgbp=.zig-cache/o/0545fd5383d834e8dacd7814e0553503/gbp.bin.z -Mconfig0=.zig-cache/c/edbe76012422d720177160b52386c0fc/options.zig -Mdwp=.zig-cache/o/d3b5ccddb61632205decc63ae9fc9297/dwp.bin.z -ODebug -Mascii=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/ascii.zig -Moptions=.zig-cache/c/2a44dcbfc8b2b1a3b74f863f5bbc69b4/options.zig --cache-dir .zig-cache --global-cache-dir /home/arejano/.cache/zig --name nohz --zig-lib-dir /home/arejano/.local/share/mise/installs/zig/0.15.1/lib/ --listen=-
 
-Testando
+Build Summary: 6/11 steps succeeded; 1 failed
+run transitive failure
++- run exe nohz transitive failure
+   +- compile exe nohz Debug native 1 errors
+   +- install transitive failure
+      +- install nohz transitive failure
+         +- compile exe nohz Debug native (+5 more reused dependencies)
 
-Testando
-
-Testando
-
-Testando
-
-Testando
-
-Testando
-
-DeinitMainView
+error: the following build command failed with exit code 1:
+.zig-cache/o/13c8c9e74ff5ae0a650408debd8ac038/build /home/arejano/.local/share/mise/installs/zig/0.15.1/zig /home/arejano/.local/share/mise/installs/zig/0.15.1/lib /home/arejano/projects/shellter .zig-cache /home/arejano/.cache/zig --seed 0x7af098ce -Zd51b73a82b6c6070 run
