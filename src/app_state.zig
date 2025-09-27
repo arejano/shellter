@@ -33,14 +33,14 @@ pub fn init(
     model: *AppState,
     app: *vxfw.App,
     allocator: Allocator,
-) AppState {
+) !AppState {
     const vx_app: *vxfw.App = @ptrCast(@alignCast(app));
 
     const app_menu: AppMenu = AppMenu.init();
     const app_status: AppStatus = AppStatus.init();
-    const database_list: DatabaseList = DatabaseList.init(model, allocator);
+    const database_list: DatabaseList = DatabaseList.init(allocator);
     const table_list: TableList = TableList.init();
-    const query_box: QueryBox = QueryBox.init();
+    const query_box: QueryBox = try QueryBox.init(allocator);
     const result_box: ResultBox = ResultBox.init();
 
     return .{

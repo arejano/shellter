@@ -1,0 +1,11 @@
+info(vaxis): pixel mouse capability detected
+info(vaxis): unicode capability detected
+info(vaxis): color_scheme_updates capability detected
+info(vaxis): kitty keyboard capability detected
+info(vaxis): kitty graphics capability detected
+debug(vaxis): enabling mouse mode: cell coordinates
+debug(vaxis): resizing screen: width=49 height=28
+debug(vaxis): resizing screen: width=49 height=28
+FocusIn:Editor
+FocusIn:Editor
+deinit
