@@ -1,11 +1,9 @@
 const std = @import("std");
-const zee = @import("zee");
+
 const vaxis = @import("vaxis");
 const vxfw = vaxis.vxfw;
 
-// const App = @import("App.zig");
-const App = @import("app_teste.zig");
-// const App = @import("finance_app.zig");
+const App = @import("App.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -15,13 +13,14 @@ pub fn main() !void {
     }
 
     const allocator = gpa.allocator();
-    var app = try vxfw.App.init(allocator);
 
     const model = try allocator.create(App);
-    model.* = try App.init(model, &app, allocator);
+    model.* = try App.init(model, allocator);
+
+    var app = try vxfw.App.init(allocator);
+    defer app.deinit();
 
     defer {
-        app.deinit();
         model.*.deinit();
         allocator.destroy(model);
     }

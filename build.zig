@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) void {
     // to our consumers. We must give it a name because a Zig package can expose
     // multiple modules and consumers will need to be able to specify which
     // module they want to access.
-    const mod = b.addModule("nohz", .{
+    const mod = b.addModule("zee", .{
         // The root source file is the "entry point" of this module. Users of
         // this module will only be able to access public declarations contained
         // in this file, which means that if you have declarations that you
@@ -58,7 +58,7 @@ pub fn build(b: *std.Build) void {
     // If neither case applies to you, feel free to delete the declaration you
     // don't need and to put everything under a single module.
     const exe = b.addExecutable(.{
-        .name = "nohz",
+        .name = "zee",
         .root_module = b.createModule(.{
             // b.createModule defines a new module just like b.addModule but,
             // unlike b.addModule, it does not expose the module to consumers of
@@ -73,24 +73,24 @@ pub fn build(b: *std.Build) void {
             // List of modules available for import in source files part of the
             // root module.
             .imports = &.{
-                // Here "nohz" is the name you will use in your source code to
-                // import this module (e.g. `@import("nohz")`). The name is
+                // Here "zee" is the name you will use in your source code to
+                // import this module (e.g. `@import("zee")`). The name is
                 // repeated because you are allowed to rename your imports, which
                 // can be extremely useful in case of collisions (which can happen
                 // importing modules from different packages).
-                .{ .name = "nohz", .module = mod },
+                .{ .name = "zee", .module = mod },
             },
         }),
     });
+
+    const vaxis_dep = b.dependency("vaxis", .{ .target = target, .optimize = optimize });
+    exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
     // by passing `--prefix` or `-p`.
     b.installArtifact(exe);
-
-    const vaxis_dep = b.dependency("vaxis", .{ .target = target, .optimize = optimize });
-    exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
 
     // This creates a top level step. Top level steps have a name and can be
     // invoked by name when running `zig build` (e.g. `zig build run`).

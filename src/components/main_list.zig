@@ -10,27 +10,31 @@ allocator: std.mem.Allocator,
 
 focused: bool = false,
 
-list_view: vxfw.ListView = undefined,
+list_view: vxfw.ListView,
+filtered: std.array_list.Managed(vxfw.Text),
 
-pub fn init(model: *App, allocator: std.mem.Allocator) std.mem.Allocator.Error!Self {
+pub fn init(model: *App, allocator: std.mem.Allocator) !Self {
     return .{
+        //
         .model = model,
         .allocator = allocator,
-        .list_view = .{
-            .children = .{
-                //
-                .builder = .{
-                    //
-                    .userdata = model,
-                    .buildFn = App.widgetBuilder,
-                },
-            },
-        },
+        .filtered = std.array_list.Managed(vxfw.Text).init(allocator),
+        .list_view = .{ .children = .{ .builder = .{
+            .userdata = model,
+            .buildFn = Self.widgetBuilder,
+        } } },
     };
 }
 
 pub fn deinit(self: *Self) void {
+    self.filtered.deinit();
+}
+
+pub fn widgetBuilder(opq: *const anyopaque, idx: usize, _: usize) ?vxfw.Widget {
+    const self: *const Self = @ptrCast(@alignCast(opq));
+    _ = idx;
     _ = self;
+    return null;
 }
 
 pub fn widget(self: *Self) vxfw.Widget {
@@ -59,16 +63,13 @@ pub fn handleEvent(
     // _ = self;
     // _ = ctx;
     switch (event) {
-        .init => |_| {},
-        .key_press => |key| {
-            if (key.codepoint == vaxis.Key.enter) {
-                self.selectMenu();
+        .key_press => |_| {},
+        .mouse => |mouse| {
+            if (mouse.button == .left and mouse.type == .press) {
+                try ctx.requestFocus(self.widget());
             }
         },
-        .mouse => |_| {},
-        .mouse_enter => {
-            try ctx.requestFocus(self.list_view.widget());
-        },
+        .mouse_enter => {},
         .mouse_leave => {},
         .focus_in => {
             self.focused = true;
@@ -94,8 +95,13 @@ pub fn draw(
     self: *Self,
     ctx: vxfw.DrawContext,
 ) std.mem.Allocator.Error!vxfw.Surface {
-    // const file_name: vxfw.Text = .{ .text = "menu" };
-    const label = if (self.focused) "[Menu]" else "Menu";
+    const app: *App = @ptrCast(@alignCast(self.model));
+
+    var buffer: [16]u8 = undefined;
+    const str_len = std.fmt.bufPrintZ(&buffer, "{d}", .{app.saved_queryes.items.len}) catch unreachable;
+
+    const file_name: vxfw.Text = .{ .text = str_len };
+    const label = if (self.focused) "[Data]" else "Data";
 
     const cp_name: vxfw.Text = .{ .text = label };
 
@@ -106,7 +112,7 @@ pub fn draw(
     };
 
     const border: vxfw.Border = .{
-        .child = self.list_view.widget(),
+        .child = file_name.widget(),
     };
 
     const sb: vxfw.SizedBox = .{ .child = border.widget(), .size = .{ .width = (ctx.max.width orelse 0), .height = (ctx.max.height orelse 0) - 2 } };
@@ -123,10 +129,4 @@ pub fn draw(
 
     const surface = try vxfw.Surface.initWithChildren(ctx.arena, self.widget(), ctx.max.size(), childs);
     return surface;
-}
-
-pub fn selectMenu(self: *Self) void {
-    const idx = self.list_view.cursor;
-    const app: *App = @ptrCast(@alignCast(self.model));
-    app.selectMenu(idx);
 }

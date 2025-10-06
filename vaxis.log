@@ -1,24 +1,91 @@
+info(vaxis): pixel mouse capability detected
+info(vaxis): unicode capability detected
+info(vaxis): color_scheme_updates capability detected
+info(vaxis): kitty keyboard capability detected
+info(vaxis): kitty graphics capability detected
+debug(vaxis): enabling mouse mode: cell coordinates
+debug(vaxis): resizing screen: width=74 height=28
+debug(vaxis): resizing screen: width=74 height=28
+Render:true-Panel
+General protection exception (no address available)
+/home/arejano/.local/share/mise/installs/zig/0.15.1/lib/std/mem.zig:1351:32: 0x122da50 in indexOfAnyPos__anon_32154 (std.zig)
+    for (slice[start_index..], start_index..) |c, i| {
+                               ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Text.zig:178:42: 0x1214ac1 in next (main.zig)
+        const end = std.mem.indexOfAnyPos(u8, self.buf, self.index, "\r\n") orelse {
+                                         ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Text.zig:225:44: 0x1213173 in next (main.zig)
+            self.line = self.hard_iter.next() orelse return null;
+                                           ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Text.zig:133:25: 0x12125e7 in findContainerSize (main.zig)
+        while (iter.next()) |line| {
+                        ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Text.zig:38:50: 0x11d1938 in draw (main.zig)
+    const container_size = self.findContainerSize(ctx);
+                                                 ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Text.zig:26:21: 0x11bc1d7 in typeErasedDrawFn (main.zig)
+    return self.draw(ctx);
+                    ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/vxfw.zig:287:27: 0x11a08c5 in draw (main.zig)
+        return self.drawFn(self.userdata, ctx);
+                          ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Center.zig:28:38: 0x1249936 in draw (main.zig)
+    const child = try self.child.draw(child_ctx);
+                                     ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Button.zig:108:33: 0x12486c1 in draw (main.zig)
+    const surf = try center.draw(ctx);
+                                ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/Button.zig:88:21: 0x12421a7 in typeErasedDrawFn (main.zig)
+    return self.draw(ctx);
+                    ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/vxfw.zig:287:27: 0x11a08c5 in draw (main.zig)
+        return self.drawFn(self.userdata, ctx);
+                          ^
+/home/arejano/projects/shellter/src/components/panel.zig:144:49: 0x122f024 in draw (main.zig)
+        .surface = try self.button.widget().draw(ctx.withConstraints(ctx.min, ctx.max)),
+                                                ^
+/home/arejano/projects/shellter/src/components/panel.zig:100:16: 0x121635d in drawFn (main.zig)
+    return draw(self, ctx);
+               ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/vxfw.zig:287:27: 0x11a08c5 in draw (main.zig)
+        return self.drawFn(self.userdata, ctx);
+                          ^
+/home/arejano/projects/shellter/src/app_teste.zig:195:32: 0x11d5216 in sub (main.zig)
+        .surface = try wdg.draw(ctx.withConstraints(ctx.min, .{
+                               ^
+/home/arejano/projects/shellter/src/app_teste.zig:185:24: 0x11bcb16 in draw (main.zig)
+    childs[0] = try sub(ctx, panel.widget(), 0, 0, (ctx.max.width orelse 0) / 2, ctx.max.height orelse 0);
+                       ^
+/home/arejano/projects/shellter/src/app_teste.zig:169:16: 0x11953dd in drawFn (main.zig)
+    return draw(self, ctx);
+               ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/vxfw.zig:287:27: 0x11a08c5 in draw (main.zig)
+        return self.drawFn(self.userdata, ctx);
+                          ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/App.zig:227:23: 0x11636eb in doLayout (main.zig)
+    return widget.draw(draw_context);
+                      ^
+/home/arejano/projects/shellter/libs/libvaxis/src/vxfw/App.zig:183:46: 0x11891ca in run (main.zig)
+            const surface = try self.doLayout(widget, &arena);
+                                             ^
+/home/arejano/projects/shellter/src/main.zig:29:16: 0x115cecf in main (main.zig)
+    try app.run(model.widget(), .{});
+               ^
+/home/arejano/.local/share/mise/installs/zig/0.15.1/lib/std/start.zig:627:37: 0x115d9e9 in posixCallMainAndExit (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+/home/arejano/.local/share/mise/installs/zig/0.15.1/lib/std/start.zig:232:5: 0x1158331 in _start (std.zig)
+    asm volatile (switch (native_arch) {
+    ^
+???:?:?: 0x0 in ??? (???)
 run
-+- run exe nohz
-   +- compile exe nohz Debug native 1 errors
-src/main_view_app.zig:88:24: error: error union is ignored
-            temp.append(&item);
-            ~~~~~~~~~~~^~~~~~~
-src/main_view_app.zig:88:24: note: consider using 'try', 'catch', or 'if'
-referenced by:
-    handleEvent: src/main_view_app.zig:101:75
-    typeErasedEventHandler: src/main_view_app.zig:76:23
-    10 reference(s) hidden; use '-freference-trace=12' to see all references
-error: the following command failed with 1 compilation errors:
-/home/arejano/.local/share/mise/installs/zig/0.15.1/zig build-exe -ODebug --dep nohz --dep vaxis -Mroot=/home/arejano/projects/shellter/src/main.zig -Mnohz=/home/arejano/projects/shellter/src/root.zig -ODebug --dep code_point --dep Graphemes --dep DisplayWidth --dep zigimg -Mvaxis=/home/arejano/projects/shellter/libs/libvaxis/src/main.zig -ODebug --dep config -Mcode_point=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/code_point.zig -ODebug --dep gbp --dep code_point --dep config=config0 -MGraphemes=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/Graphemes.zig -ODebug --dep dwp --dep ascii --dep code_point --dep Graphemes --dep options -MDisplayWidth=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/DisplayWidth.zig -ODebug --dep zigimg -Mzigimg=/home/arejano/.cache/zig/p/zigimg-0.1.0-8_eo2vHnEwCIVW34Q14Ec-xUlzIoVg86-7FU2ypPtxms/zigimg.zig -Mconfig=.zig-cache/c/edbe76012422d720177160b52386c0fc/options.zig -Mgbp=.zig-cache/o/0545fd5383d834e8dacd7814e0553503/gbp.bin.z -Mconfig0=.zig-cache/c/edbe76012422d720177160b52386c0fc/options.zig -Mdwp=.zig-cache/o/d3b5ccddb61632205decc63ae9fc9297/dwp.bin.z -ODebug -Mascii=/home/arejano/.cache/zig/p/zg-0.15.1-oGqU3M0-tALZCy7boQS86znlBloyKx6--JriGlY0Paa9/src/ascii.zig -Moptions=.zig-cache/c/2a44dcbfc8b2b1a3b74f863f5bbc69b4/options.zig --cache-dir .zig-cache --global-cache-dir /home/arejano/.cache/zig --name nohz --zig-lib-dir /home/arejano/.local/share/mise/installs/zig/0.15.1/lib/ --listen=-
++- run exe zee failure
+error: the following command terminated unexpectedly:
+/home/arejano/projects/shellter/zig-out/bin/zee
 
-Build Summary: 6/11 steps succeeded; 1 failed
+Build Summary: 9/11 steps succeeded; 1 failed
 run transitive failure
-+- run exe nohz transitive failure
-   +- compile exe nohz Debug native 1 errors
-   +- install transitive failure
-      +- install nohz transitive failure
-         +- compile exe nohz Debug native (+5 more reused dependencies)
++- run exe zee failure
 
 error: the following build command failed with exit code 1:
-.zig-cache/o/13c8c9e74ff5ae0a650408debd8ac038/build /home/arejano/.local/share/mise/installs/zig/0.15.1/zig /home/arejano/.local/share/mise/installs/zig/0.15.1/lib /home/arejano/projects/shellter .zig-cache /home/arejano/.cache/zig --seed 0x7af098ce -Zd51b73a82b6c6070 run
+.zig-cache/o/0bc24890fc4f4ae7d74e5c63c847ae18/build /home/arejano/.local/share/mise/installs/zig/0.15.1/zig /home/arejano/.local/share/mise/installs/zig/0.15.1/lib /home/arejano/projects/shellter .zig-cache /home/arejano/.cache/zig --seed 0x5565baea -Z8287cf7665415983 run
